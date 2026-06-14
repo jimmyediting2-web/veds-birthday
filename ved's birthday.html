@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday My Love 💕</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #e8002d;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    min-height: 100vh;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .screen.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* ══════════════════════════════
+     SCREEN 1 — PASSCODE
+  ══════════════════════════════ */
+  #screen1 {
+    background: #e8002d;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    padding: 2rem;
+    flex-wrap: wrap;
+  }
+
+  /* Polaroid */
+  .polaroid {
+    background: #fff;
+    padding: 14px 14px 50px;
+    box-shadow: 4px 6px 20px rgba(0,0,0,0.3), -2px -2px 10px rgba(0,0,0,0.15);
+    transform: rotate(-4deg);
+    flex-shrink: 0;
+  }
+  .polaroid img {
+    width: 220px;
+    height: 260px;
+    object-fit: cover;
+    display: block;
+    position: relative;
+  }
+  .polaroid-label {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    color: #e8002d;
+    font-size: 15px;
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+
+  /* Keypad panel */
+  .keypad-panel {
+    background: rgba(255,255,255,0.12);
+    border-radius: 24px;
+    padding: 2rem;
+    backdrop-filter: blur(4px);
+    border: 2px solid rgba(255,255,255,0.25);
+    text-align: center;
+    min-width: 280px;
+  }
+  .keypad-title {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .code-boxes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  .code-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: #fff;
+    transition: all 0.2s;
+  }
+  .code-box.filled {
+    background: rgba(255,255,255,0.35);
+    border-color: #fff;
+    transform: scale(1.08);
+  }
+
+  .keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .key-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    user-select: none;
+  }
+  .key-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.08); }
+  .key-btn:active { transform: scale(0.94); }
+  .key-btn.del-btn { font-size: 1.1rem; }
+
+  .hint-text {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    margin-top: 0.6rem;
+    font-style: italic;
+  }
+  .next-btn {
+    display: none;
+    margin: 1rem auto 0;
+    padding: 0.7rem 2rem;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(76,175,80,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeInUp 0.4s ease forwards;
+  }
+  .next-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 22px rgba(76,175,80,0.7); }
+
+  /* ══════════════════════════════
+     SCREEN 2 — BIRTHDAY GREETING
+  ══════════════════════════════ */
+  #screen2 {
+    background: #e8002d;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Lily flowers corners */
+  .lily {
+    position: absolute;
+    width: 160px;
+    pointer-events: none;
+  }
+  .lily.top-left { top: -10px; left: -10px; transform: rotate(0deg); }
+  .lily.top-right { top: -10px; right: -10px; transform: rotate(90deg) scaleX(-1); }
+
+  .birthday-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: #fff;
+    text-shadow: 4px 4px 0 rgba(0,0,0,0.15), 0 0 40px rgba(255,200,0,0.3);
+    letter-spacing: 3px;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    z-index: 2;
+  }
+  .birthday-title span { color: #FFD700; }
+
+  .couple-frame {
+    background: #fff;
+    padding: 14px 14px 55px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    z-index: 2;
+    position: relative;
+  }
+  .couple-photo {
+    width: 240px;
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .couple-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .couple-label {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    color: #e8002d;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  /* Disco ball */
+  .disco-ball {
+    position: absolute;
+    bottom: 60px;
+    left: 40px;
+    width: 100px;
+    animation: spin 4s linear infinite;
+    z-index: 1;
+  }
+  /* Sparkles */
+  .sparkles {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+
+  .s2-next {
+    margin-top: 1.5rem;
+    padding: 0.7rem 2.2rem;
+    background: #1565C0;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(21,101,192,0.5);
+    transition: all 0.2s;
+    z-index: 3;
+  }
+  .s2-next:hover { transform: scale(1.06); box-shadow: 0 6px 24px rgba(21,101,192,0.7); }
+
+  /* ══════════════════════════════
+     SCREEN 3 — MAKE A WISH
+  ══════════════════════════════ */
+  #screen3 {
+    background: #e8002d;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+  }
+
+  .wish-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 7vw, 4rem);
+    color: #FFD700;
+    text-shadow: 2px 3px 0 rgba(0,0,0,0.15), 0 0 30px rgba(255,215,0,0.4);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  /* Cake */
+  .cake-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .candles-row {
+    display: flex;
+    gap: 18px;
+    margin-bottom: -3px;
+    align-items: flex-end;
+    position: relative;
+    z-index: 2;
+  }
+  .candle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .flame {
+    width: 16px;
+    height: 22px;
+    background: radial-gradient(ellipse at 50% 80%, #fff 0%, #FFD700 40%, #FF6B00 70%, transparent 100%);
+    border-radius: 50% 50% 40% 40%;
+    animation: flicker 0.7s ease-in-out infinite alternate;
+    transform-origin: bottom center;
+    transition: opacity 0.8s ease;
+    filter: drop-shadow(0 0 6px #FF9900);
+  }
+  .flame.blown { opacity: 0; transform: scaleY(0); }
+  .candle-stick {
+    width: 10px;
+    height: 36px;
+    border-radius: 4px;
+  }
+
+  .cake-svg { filter: drop-shadow(0 8px 20px rgba(0,0,0,0.25)); }
+
+  .blow-btn {
+    padding: 0.85rem 3rem;
+    background: #FF6B6B;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,107,107,0.6);
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .blow-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(255,107,107,0.8); }
+  .blow-btn:active { transform: scale(0.96); }
+  .blow-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+  .wish-msg {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.8s ease 0.5s;
+    text-align: center;
+  }
+  .wish-msg.show { opacity: 1; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes flicker {
+    0%   { transform: rotate(-3deg) scaleY(1); }
+    100% { transform: rotate(3deg) scaleY(0.88); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Floating hearts bg */
+  .heart-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .heart-bg span {
+    position: absolute;
+    bottom: -50px;
+    font-size: 1.4rem;
+    animation: floatUp linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    #screen1 { flex-direction: column; gap: 1.5rem; padding: 1rem; }
+    .polaroid img { width: 180px; height: 210px; }
+    .keypad-panel { min-width: unset; width: 100%; padding: 1.2rem; }
+    .key-btn { width: 58px; height: 58px; font-size: 1.3rem; }
+    .couple-photo { width: 200px; height: 200px; }
+    .lily { width: 110px; }
+    .disco-ball { width: 70px; bottom: 40px; left: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="heart-bg" id="heartBg"></div>
+
+<div class="screen active" id="screen1">
+
+  <div class="polaroid">
+    <img src="WhatsApp Image 2026-06-13 at 2.41.36 PM.jpeg" alt="Birthday Boy">
+    <div class="polaroid-label">Miee bubbuuu😘💋💋 ♥</div>
+  </div>
+
+  <div class="keypad-panel">
+    <div class="keypad-title">Enter a passcode 🔐</div>
+
+    <div class="code-boxes">
+      <div class="code-box" id="cb0"></div>
+      <div class="code-box" id="cb1"></div>
+      <div class="code-box" id="cb2"></div>
+      <div class="code-box" id="cb3"></div>
+    </div>
+
+    <div class="keypad-grid">
+      <button class="key-btn" onclick="pressKey('1')">1</button>
+      <button class="key-btn" onclick="pressKey('2')">2</button>
+      <button class="key-btn" onclick="pressKey('3')">3</button>
+      <button class="key-btn" onclick="pressKey('4')">4</button>
+      <button class="key-btn" onclick="pressKey('5')">5</button>
+      <button class="key-btn" onclick="pressKey('6')">6</button>
+      <button class="key-btn" onclick="pressKey('7')">7</button>
+      <button class="key-btn" onclick="pressKey('8')">8</button>
+      <button class="key-btn" onclick="pressKey('9')">9</button>
+      <button class="key-btn" onclick="pressKey('*')">*</button>
+      <button class="key-btn" onclick="pressKey('0')">0</button>
+      <button class="key-btn del-btn" onclick="deleteKey()">⌫</button>
+    </div>
+
+    <div class="hint-text">hint — it's our fav code 💕</div>
+    <button class="next-btn" id="nextBtn1" onclick="goToScreen(2)">NEXT ➤</button>
+  </div>
+</div>
+
+<div class="screen" id="screen2">
+
+  <svg class="lily top-left" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="60" cy="120" rx="18" ry="60" fill="#FF6B00" transform="rotate(-30,60,120)"/>
+    <ellipse cx="100" cy="80" rx="18" ry="60" fill="#FF8C00" transform="rotate(10,100,80)"/>
+    <ellipse cx="40" cy="80" rx="18" ry="60" fill="#FF6B00" transform="rotate(-60,40,80)"/>
+    <ellipse cx="130" cy="100" rx="18" ry="60" fill="#FFA500" transform="rotate(40,130,100)"/>
+    <ellipse cx="80" cy="50" rx="18" ry="60" fill="#FF8C00" transform="rotate(-10,80,50)"/>
+    <circle cx="80" cy="100" r="18" fill="#FFD700"/>
+    <circle cx="80" cy="100" r="10" fill="#FF6B00"/>
+    <ellipse cx="70" cy="160" rx="6" ry="40" fill="#2e7d32" transform="rotate(-20,70,160)"/>
+    <ellipse cx="90" cy="165" rx="5" ry="35" fill="#388e3c" transform="rotate(15,90,165)"/>
+  </svg>
+
+  <svg class="lily top-right" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="60" cy="120" rx="18" ry="60" fill="#FF6B00" transform="rotate(-30,60,120)"/>
+    <ellipse cx="100" cy="80" rx="18" ry="60" fill="#FF8C00" transform="rotate(10,100,80)"/>
+    <ellipse cx="40" cy="80" rx="18" ry="60" fill="#FF6B00" transform="rotate(-60,40,80)"/>
+    <ellipse cx="130" cy="100" rx="18" ry="60" fill="#FFA500" transform="rotate(40,130,100)"/>
+    <ellipse cx="80" cy="50" rx="18" ry="60" fill="#FF8C00" transform="rotate(-10,80,50)"/>
+    <circle cx="80" cy="100" r="18" fill="#FFD700"/>
+    <circle cx="80" cy="100" r="10" fill="#FF6B00"/>
+    <ellipse cx="70" cy="160" rx="6" ry="40" fill="#2e7d32" transform="rotate(-20,70,160)"/>
+    <ellipse cx="90" cy="165" rx="5" ry="35" fill="#388e3c" transform="rotate(15,90,165)"/>
+  </svg>
+
+  <svg class="disco-ball" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+    <line x1="50" y1="0" x2="50" y2="15" stroke="#ccc" stroke-width="3"/>
+    <ellipse cx="50" cy="55" rx="38" ry="38" fill="#888"/>
+    <clipPath id="ballClip"><ellipse cx="50" cy="55" rx="38" ry="38"/></clipPath>
+    <g clip-path="url(#ballClip)">
+      <rect x="12" y="17" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="26" y="17" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="40" y="17" width="12" height="8" fill="#9e9e9e" rx="1"/>
+      <rect x="54" y="17" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="68" y="17" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="6" y="27" width="12" height="8" fill="#90caf9" rx="1"/>
+      <rect x="20" y="27" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="34" y="27" width="12" height="8" fill="#80cbc4" rx="1"/>
+      <rect x="48" y="27" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="62" y="27" width="12" height="8" fill="#f48fb1" rx="1"/>
+      <rect x="76" y="27" width="12" height="8" fill="#90caf9" rx="1"/>
+      <rect x="12" y="37" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="26" y="37" width="12" height="8" fill="#80cbc4" rx="1"/>
+      <rect x="40" y="37" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="54" y="37" width="12" height="8" fill="#90caf9" rx="1"/>
+      <rect x="68" y="37" width="12" height="8" fill="#f48fb1" rx="1"/>
+      <rect x="6" y="47" width="12" height="8" fill="#90caf9" rx="1"/>
+      <rect x="20" y="47" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="34" y="47" width="12" height="8" fill="#f48fb1" rx="1"/>
+      <rect x="48" y="47" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="62" y="47" width="12" height="8" fill="#80cbc4" rx="1"/>
+      <rect x="76" y="47" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="12" y="57" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="26" y="57" width="12" height="8" fill="#90caf9" rx="1"/>
+      <rect x="40" y="57" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="54" y="57" width="12" height="8" fill="#f48fb1" rx="1"/>
+      <rect x="68" y="57" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="6" y="67" width="12" height="8" fill="#80cbc4" rx="1"/>
+      <rect x="20" y="67" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="34" y="67" width="12" height="8" fill="#90caf9" rx="1"/>
+      <rect x="48" y="67" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="62" y="67" width="12" height="8" fill="#80cbc4" rx="1"/>
+      <rect x="76" y="67" width="12" height="8" fill="#f48fb1" rx="1"/>
+      <rect x="12" y="77" width="12" height="8" fill="#f48fb1" rx="1"/>
+      <rect x="26" y="77" width="12" height="8" fill="#e0e0e0" rx="1"/>
+      <rect x="40" y="77" width="12" height="8" fill="#80cbc4" rx="1"/>
+      <rect x="54" y="77" width="12" height="8" fill="#bdbdbd" rx="1"/>
+      <rect x="68" y="77" width="12" height="8" fill="#90caf9" rx="1"/>
+    </g>
+    <ellipse cx="35" cy="40" rx="10" ry="6" fill="white" opacity="0.3" transform="rotate(-20,35,40)"/>
+  </svg>
+
+  <svg class="sparkles" width="80" height="200" viewBox="0 0 80 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#4FC3F7">
+      <polygon points="20,10 23,20 33,20 25,26 28,36 20,30 12,36 15,26 7,20 17,20" opacity="0.9"/>
+      <polygon points="55,60 57,67 64,67 58,71 60,78 55,74 50,78 52,71 46,67 53,67" opacity="0.7"/>
+      <polygon points="15,110 17,117 24,117 18,121 20,128 15,124 10,128 12,121 6,117 13,117" opacity="0.9"/>
+      <polygon points="60,150 62,157 69,157 63,161 65,168 60,164 55,168 57,161 51,157 58,157" opacity="0.7"/>
+      <circle cx="40" cy="85" r="4" opacity="0.5"/>
+      <circle cx="25" cy="140" r="3" opacity="0.6"/>
+      <circle cx="65" cy="110" r="3" opacity="0.5"/>
+      <circle cx="10" cy="175" r="2" opacity="0.7"/>
+    </g>
+  </svg>
+
+  <div class="birthday-title">Happy <span>BIRTHDAY</span> 🎂</div>
+
+  <div class="couple-frame">
+    <div class="couple-photo">
+      <img src="WhatsApp Image 2026-06-13 at 2.42.33 PM.jpeg" alt="Us Forever">
+    </div>
+    <div class="couple-label">happiest birthday babeee🥳💋💋</div>
+  </div>
+
+  <button class="s2-next" onclick="goToScreen(3)">NEXT ➤</button>
+</div>
+
+<div class="screen" id="screen3">
+  <div class="wish-title">🌟 Make a Wish 🌟</div>
+
+  <div class="cake-container">
+    <div class="candles-row" id="candlesRow">
+      <div class="candle"><div class="flame" id="f0"></div><div class="candle-stick" style="background:linear-gradient(#ff69b4,#ff1493)"></div></div>
+      <div class="candle"><div class="flame" id="f1"></div><div class="candle-stick" style="background:linear-gradient(#ffd700,#ffa500)"></div></div>
+      <div class="candle"><div class="flame" id="f2"></div><div class="candle-stick" style="background:linear-gradient(#00bcd4,#0097a7)"></div></div>
+      <div class="candle"><div class="flame" id="f3"></div><div class="candle-stick" style="background:linear-gradient(#ff69b4,#ff1493)"></div></div>
+      <div class="candle"><div class="flame" id="f4"></div><div class="candle-stick" style="background:linear-gradient(#ffd700,#ffa500)"></div></div>
+      <div class="candle"><div class="flame" id="f5"></div><div class="candle-stick" style="background:linear-gradient(#9c27b0,#6a0080)"></div></div>
+      <div class="candle"><div class="flame" id="f6"></div><div class="candle-stick" style="background:linear-gradient(#ff69b4,#ff1493)"></div></div>
+    </div>
+
+    <svg class="cake-svg" width="280" height="200" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="60" y="20" width="160" height="55" rx="10" fill="#FFDCE1"/>
+      <rect x="60" y="20" width="160" height="14" rx="10" fill="#FF6B9D"/>
+      <rect x="60" y="64" width="160" height="11" rx="0" fill="#FF6B9D"/>
+      <path d="M80 34 Q85 44 90 34 Q95 44 100 34 Q105 44 110 34 Q115 44 120 34 Q125 44 130 34 Q135 44 140 34 Q145 44 150 34 Q155 44 160 34 Q165 44 170 34 Q175 44 180 34 Q185 44 190 34 Q195 44 200 34" stroke="white" stroke-width="2.5" fill="none" opacity="0.7"/>
+      <circle cx="95" cy="50" r="5" fill="#FF1493" opacity="0.7"/>
+      <circle cx="115" cy="45" r="4" fill="#FFD700" opacity="0.8"/>
+      <circle cx="140" cy="52" r="5" fill="#FF1493" opacity="0.7"/>
+      <circle cx="165" cy="46" r="4" fill="#FFD700" opacity="0.8"/>
+      <circle cx="185" cy="51" r="5" fill="#FF1493" opacity="0.7"/>
+
+      <rect x="30" y="75" width="220" height="80" rx="10" fill="#FFB6C1"/>
+      <rect x="30" y="75" width="220" height="16" rx="10" fill="#FF69B4"/>
+      <rect x="30" y="143" width="220" height="12" rx="0" fill="#FF69B4"/>
+      <path d="M50 91 Q57 104 64 91 Q71 104 78 91 Q85 104 92 91 Q99 104 106 91 Q113 104 120 91 Q127 104 134 91 Q141 104 148 91 Q155 104 162 91 Q169 104 176 91 Q183 104 190 91 Q197 104 204 91 Q211 104 218 91 Q225 104 232 91 Q239 104 246 91" stroke="white" stroke-width="2.5" fill="none" opacity="0.6"/>
+      <text x="90" y="130" font-size="26" text-anchor="middle">🎂</text>
+      <text x="140" y="130" font-size="26" text-anchor="middle">💕</text>
+      <text x="190" y="130" font-size="26" text-anchor="middle">🎂</text>
+
+      <ellipse cx="140" cy="160" rx="130" ry="14" fill="#F8BBD0"/>
+      <ellipse cx="140" cy="157" rx="130" ry="10" fill="#FCE4EC"/>
+    </svg>
+  </div>
+
+  <button class="blow-btn" id="blowBtn" onclick="blowCandles()">💨 BLOW</button>
+  <div class="wish-msg" id="wishMsg">Happy Birthday, bubuuu! ❤️
+No matter how far we are, you've become such an important part of my life. Thank you for all the laughs, the comfort, the support, and all the little moments that make our bond so special. You make even ordinary days feel better just by being there.
+I hope this year brings you everything you deserve because you truly deserve the best. Stay happy, keep smiling, and never forget how much you mean to me.
+Happy Birthday once again, my favorite person. 🎂❤️</div>
+</div>
+
+<audio id="bgMusic" loop>
+  <source src="" type="audio/mpeg">
+</audio>
+
+<script>
+  // ── HEARTS BACKGROUND ──
+  const heartBg = document.getElementById('heartBg');
+  const emojis = ['💕','💗','💓','❤️','💖','🌸','✨'];
+  for (let i = 0; i < 20; i++) {
+    const s = document.createElement('span');
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDuration = (6 + Math.random() * 8) + 's';
+    s.style.animationDelay = (Math.random() * 8) + 's';
+    s.style.fontSize = (0.9 + Math.random() * 1.2) + 'rem';
+    heartBg.appendChild(s);
+  }
+
+  // ── SCREEN TRANSITIONS ──
+  function goToScreen(n) {
+    document.querySelectorAll('.screen').forEach(s => {
+      s.style.opacity = '0';
+      setTimeout(() => s.classList.remove('active'), 450);
+    });
+    setTimeout(() => {
+      const next = document.getElementById('screen' + n);
+      next.classList.add('active');
+      setTimeout(() => next.style.opacity = '1', 20);
+    }, 460);
+  }
+
+  // ── PASSCODE LOGIC ──
+  let entered = '';
+  const correct = '1506';
+  let musicStarted = false;
+
+  function pressKey(k) {
+    if (k === '*' || k === '#') return;
+    if (entered.length >= 4) return;
+
+    if (!musicStarted) {
+      const music = document.getElementById('bgMusic');
+      if (music.src) music.play().catch(() => {});
+      musicStarted = true;
+    }
+
+    entered += k;
+    updateDisplay();
+
+    if (entered === correct) {
+      setTimeout(() => {
+        const btn = document.getElementById('nextBtn1');
+        btn.style.display = 'block';
+      }, 200);
+    } else if (entered.length === 4) {
+      // Wrong code — shake and reset
+      const boxes = document.querySelectorAll('.code-box');
+      boxes.forEach(b => {
+        b.style.background = 'rgba(255,80,80,0.5)';
+        b.style.borderColor = '#ff5050';
+      });
+      setTimeout(() => {
+        entered = '';
+        updateDisplay();
+        boxes.forEach(b => {
+          b.style.background = '';
+          b.style.borderColor = '';
+        });
+      }, 700);
+    }
+  }
+
+  function deleteKey() {
+    if (entered.length > 0) {
+      entered = entered.slice(0, -1);
+      updateDisplay();
+      const btn = document.getElementById('nextBtn1');
+      if (entered !== correct) btn.style.display = 'none';
+    }
+  }
+
+  function updateDisplay() {
+    for (let i = 0; i < 4; i++) {
+      const box = document.getElementById('cb' + i);
+      if (entered[i] !== undefined) {
+        box.textContent = '●';
+        box.classList.add('filled');
+      } else {
+        box.textContent = '';
+        box.classList.remove('filled');
+      }
+    }
+  }
+
+  // ── BLOW CANDLES ──
+  function blowCandles() {
+    const btn = document.getElementById('blowBtn');
+    btn.disabled = true;
+    btn.textContent = '💨 Blowing...';
+
+    // Staggered flame extinguish
+    for (let i = 0; i < 7; i++) {
+      setTimeout(() => {
+        document.getElementById('f' + i).classList.add('blown');
+      }, i * 120);
+    }
+
+    // Confetti blast
+    setTimeout(() => {
+      confetti({ particleCount: 180, spread: 80, origin: { y: 0.6 }, colors: ['#FF6B9D','#FFD700','#FF1493','#00BCD4','#ffffff','#FF6B00'] });
+      setTimeout(() => confetti({ particleCount: 120, spread: 120, origin: { y: 0.4 }, angle: 60 }), 300);
+      setTimeout(() => confetti({ particleCount: 120, spread: 120, origin: { y: 0.4 }, angle: 120 }), 400);
+    }, 600);
+
+    setTimeout(() => {
+      document.getElementById('wishMsg').classList.add('show');
+      btn.textContent = '🎉 Wish Made!';
+    }, 900);
+  }
+</script>
+</body>
+</html>
